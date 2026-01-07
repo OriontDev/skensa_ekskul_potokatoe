@@ -1,0 +1,2 @@
+# Ignore the database config (contains your Supabase password)
+db_config.php
