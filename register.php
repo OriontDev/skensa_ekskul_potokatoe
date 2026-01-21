@@ -1,9 +1,8 @@
 <?php
-    require_once 'db_config.php'; // This must now use the PDO connection we discussed
+    require_once 'db_config.php'; 
 
-
-    $nis = $nama = $no_telp = "";
-    $nis_err = $nama_err = $password_err = $confirm_password_err = $no_telp_err = $error = "";
+    $nis = $nama = $no_telp = $role = "";
+    $nis_err = $nama_err = $password_err = $confirm_password_err = $no_telp_err = $role_err = $error = "";
     $registration_success = false;
     
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -12,40 +11,47 @@
         $nama = trim($_POST["nama"]);
         $password = trim($_POST["password"]);
         $no_telp = trim($_POST["no_telp"]); 
-        $role = 'student'; // Default role as per your schema
+        $role = trim($_POST["role"]); // Capture the new role field
 
-        // 2. Hash the password for security
+        // 2. Simple Validation for Role
+        $allowed_roles = ['student', 'pengurus', 'guru'];
+        if (!in_array($role, $allowed_roles)) {
+            $role_err = "Pilih peran yang valid.";
+        }
+
+        // 3. Hash the password for security
         $password_hashed = password_hash($password, PASSWORD_DEFAULT);
 
-        try {
-            // 3. Check if NIS already exists (Postgres is strict about UNIQUE constraints)
-            $checkSql = "SELECT id FROM users WHERE nis = :nis";
-            $checkStmt = $pdo->prepare($checkSql);
-            $checkStmt->execute(['nis' => $nis]);
-            
-            if ($checkStmt->rowCount() > 0) {
-                $error = "NIS ini sudah terdaftar. Silakan gunakan NIS lain.";
-            } else {
-                // 4. Prepare the INSERT statement for Supabase
-                $sql = "INSERT INTO users (nis, nama, password_hash, no_telp, role) 
-                        VALUES (:nis, :nama, :pass, :telp, :role)";
+        if (empty($role_err)) {
+            try {
+                // 4. Check if NIS already exists
+                $checkSql = "SELECT id FROM users WHERE nis = :nis";
+                $checkStmt = $pdo->prepare($checkSql);
+                $checkStmt->execute(['nis' => $nis]);
                 
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([
-                    'nis'  => $nis,
-                    'nama' => $nama,
-                    'pass' => $password_hashed,
-                    'telp' => $no_telp,
-                    'role' => $role
-                ]);
+                if ($checkStmt->rowCount() > 0) {
+                    $error = "NIS ini sudah terdaftar. Silakan gunakan NIS lain.";
+                } else {
+                    // 5. Prepare the INSERT statement (Role is now a variable)
+                    $sql = "INSERT INTO users (nis, nama, password_hash, no_telp, role) 
+                            VALUES (:nis, :nama, :pass, :telp, :role)";
+                    
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute([
+                        'nis'  => $nis,
+                        'nama' => $nama,
+                        'pass' => $password_hashed,
+                        'telp' => $no_telp,
+                        'role' => $role
+                    ]);
 
-                // 5. Redirect on success
-                header("Location: login.php?registration=success");
-                exit;
+                    // 6. Redirect on success
+                    header("Location: login.php?registration=success");
+                    exit;
+                }
+            } catch (PDOException $e) {
+                $error = "Registration failed: " . $e->getMessage();
             }
-        } catch (PDOException $e) {
-            // Detailed error for debugging; in production, use a friendlier message
-            $error = "Registration failed: " . $e->getMessage();
         }
     }
 ?>
@@ -67,8 +73,14 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             background-color: #fff;
         }
-
-        /* Tambahkan CSS yang Anda butuhkan di style.css */
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
     </style>
 </head>
 <body>
@@ -84,16 +96,27 @@
     <div class="form-container">
         <h2 class="section-title">Daftar Akun Baru</h2>
 
-        <?php if ($registration_success): ?>
-            <div class="success-message">
-                Pendaftaran Berhasil! Anda sekarang dapat <a href="login.php">Masuk</a>.
+        <?php if (!empty($error)): ?>
+            <div class="error-feedback" style="margin-bottom: 15px; color: red;">
+                <?php echo $error; ?>
             </div>
         <?php endif; ?>
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" class="registration-form">
             
             <div class="form-group">
-                <label for="nis">NIS (Nomor Induk Siswa):</label>
+                <label for="role">Daftar Sebagai:</label>
+                <select name="role" id="role" required>
+                    <option value="" disabled <?php echo ($role == "") ? "selected" : ""; ?>>-- Pilih Peran --</option>
+                    <option value="student" <?php echo ($role == "student") ? "selected" : ""; ?>>Siswa (Student)</option>
+                    <option value="pengurus" <?php echo ($role == "pengurus") ? "selected" : ""; ?>>Pengurus Ekskul</option>
+                    <option value="guru" <?php echo ($role == "guru") ? "selected" : ""; ?>>Guru / Pembina</option>
+                </select>
+                <span class="error-feedback"><?php echo $role_err; ?></span>
+            </div>
+
+            <div class="form-group">
+                <label for="nis">NIS / NIP:</label>
                 <input type="text" id="nis" name="nis" value="<?php echo htmlspecialchars($nis); ?>" required placeholder="Contoh: 12345678">
                 <span class="error-feedback"><?php echo $nis_err; ?></span>
             </div>
