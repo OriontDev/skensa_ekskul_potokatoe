@@ -15,6 +15,7 @@ $my_ekskul = [];
 
 try {
     if ($user_role === 'guru' || $user_role === 'pengurus') {
+        // Fetch for managers/teachers
         $sql = "SELECT e.*, 
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
                 FROM ekskul e
@@ -26,13 +27,14 @@ try {
         $stmt->execute(['uid' => $user_id]);
         $my_ekskul = $stmt->fetchAll();
     } else {
-        $sql = "SELECT e.*, p.kelas, p.tanggal_daftar,
+        // Fetch for students - FIXED: Removed p.kelas and changed tanggal_daftar to created_at
+        $sql = "SELECT e.*, p.created_at as tanggal_daftar,
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
                 FROM ekskul e
                 JOIN pendaftaran p ON e.id = p.id_ekskul
                 LEFT JOIN jadwal_ekskul j ON e.id = j.id_ekskul
                 WHERE p.id_user = :uid
-                GROUP BY e.id, p.kelas, p.tanggal_daftar
+                GROUP BY e.id, p.created_at
                 ORDER BY e.nama ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['uid' => $user_id]);
@@ -102,7 +104,7 @@ try {
                         <th>No</th>
                         <th>Nama Ekskul</th>
                         <th>Jadwal</th>
-                        <?php if($user_role === 'student'): ?><th>Kelas</th><th>Tgl Daftar</th><?php endif; ?>
+                        <?php if($user_role === 'student'): ?><th>Tgl Daftar</th><?php endif; ?>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -113,7 +115,6 @@ try {
                             <td><strong><?php echo htmlspecialchars($item['nama']); ?></strong></td>
                             <td><?php echo $item['jadwal_gabungan'] ?: '<em>Belum diatur</em>'; ?></td>
                             <?php if($user_role === 'student'): ?>
-                                <td><?php echo htmlspecialchars($item['kelas']); ?></td>
                                 <td><?php echo date('d M Y', strtotime($item['tanggal_daftar'])); ?></td>
                             <?php endif; ?>
                             <td><a href="detail_ekskul.php?id=<?php echo $item['id']; ?>" class="btn-view">Detail</a></td>

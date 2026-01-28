@@ -1,138 +1,290 @@
-/* Layout & Hero */
-.main-wrapper {
+/* --- Core Layout (Matches Dashboard) --- */
+body {
+    display: flex;
     background-color: #f8fafc;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-wrapper {
+    margin-left: 250px; /* Fixed sidebar width */
+    width: calc(100% - 250px);
     min-height: 100vh;
 }
 
-.back-link {
-    text-decoration: none;
-    color: #4a5568;
-    font-weight: 500;
-    font-size: 0.9rem;
+/* --- Header styling (Matches Dashboard) --- */
+.header {
+    background: white;
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
 }
 
+/* --- Content Area (Matches Dashboard) --- */
+.content-area {
+    padding: 40px;
+}
+
+/* --- Hero Section & Banner --- */
 .ekskul-hero {
-    position: relative;
-    margin-bottom: 2rem;
+    margin-bottom: 30px;
 }
 
 .hero-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .hero-content h1 {
-    font-size: 2.5rem;
-    color: #1a202c;
+    font-size: 2.2rem;
     margin: 0;
+    color: #1a202c;
+    font-weight: 800;
 }
 
 .hero-banner {
     width: 100%;
-    height: 300px;
-    border-radius: 12px;
+    height: 350px;
     background-size: cover;
     background-position: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-/* Grid Info */
+/* --- Detail Grid & Cards --- */
 .detail-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 30px;
+    margin-bottom: 40px;
 }
 
 .info-card {
     background: white;
-    padding: 1.5rem;
+    padding: 25px;
     border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 1px solid #e2e8f0;
 }
 
 .info-card h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    color: #2d3748;
-    border-bottom: 2px solid #edf2f7;
-    padding-bottom: 0.5rem;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 10px;
 }
 
 .schedule-items {
     line-height: 1.8;
-    color: #4a5568;
+    color: #2d3748;
     font-weight: 500;
 }
 
-/* Table Section */
+/* --- Student List (Matches Dashboard Table) --- */
 .student-list-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    margin-top: 20px;
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    color: #2d3748;
+    margin: 0;
 }
 
 .student-count {
-    background: #ebf8ff;
-    color: #2b6cb0;
-    padding: 4px 12px;
+    background: #4c51bf;
+    color: white;
+    padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: bold;
 }
 
+.table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
 .detail-table {
     width: 100%;
     border-collapse: collapse;
+    text-align: left;
 }
 
 .detail-table th {
-    text-align: left;
-    padding: 12px;
-    background: #f7fafc;
-    color: #718096;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    background-color: #edf2f7;
+    padding: 15px;
+    color: #4a5568;
+    font-weight: 600;
 }
 
 .detail-table td {
-    padding: 15px 12px;
+    padding: 15px;
     border-bottom: 1px solid #edf2f7;
     color: #2d3748;
 }
 
-/* Buttons */
-.btn-edit {
-    background-color: #4a5568;
-    color: white;
-    padding: 10px 20px;
+.detail-table tr:hover {
+    background-color: #f7fafc;
+}
+
+/* --- Modal Styles (Matches Dashboard) --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-body {
+    padding: 25px;
+    overflow-y: auto;
+}
+
+/* --- Form inside Modal --- */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4a5568; }
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.schedule-row {
+    background: #f7fafc;
+    padding: 15px;
     border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+}
+
+.remove-schedule {
+    color: #f56565;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* --- Buttons --- */
+.btn-edit-trigger {
+    background-color: #4c51bf;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-add-schedule {
+    width: 100%;
+    background: white;
+    border: 1px dashed #cbd5e0;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-submit { background-color: #4c51bf; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.btn-cancel { background-color: #edf2f7; color: #4a5568; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; }
+
+/* Back Link Style */
+.back-link {
     text-decoration: none;
+    color: #4c51bf;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+/* --- Nilai Field Styles --- */
+.select-nilai {
+    width: 140px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e0;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    color: #2d3748;
+    background-color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.select-nilai:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.1);
+}
+
+.badge-nilai {
     font-weight: 600;
-    transition: 0.3s;
+    color: #4a5568;
+    font-size: 0.9rem;
 }
 
-.btn-edit:hover {
-    background-color: #2d3748;
+.text-center {
+    text-align: center;
+    color: #a0aec0;
+    padding: 30px !important;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
+.form-divider {
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    margin: 25px 0;
+}
+
+@media (max-width: 992px) {
+    .main-wrapper { margin-left: 0; width: 100%; }
+    .detail-grid { grid-template-columns: 1fr; }
 }
