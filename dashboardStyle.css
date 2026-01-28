@@ -1,0 +1,246 @@
+/* Layout consistency with sidebar */
+body {
+    display: flex;
+    background-color: #f8fafc;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-wrapper {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+}
+
+/* Header styling */
+.header {
+    background: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.user-info {
+    margin-right: 20px;
+    color: #4a5568;
+}
+
+.logout-btn {
+    background-color: #f56565;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* Dashboard Content */
+.content-area {
+    padding: 40px;
+}
+
+.stats-overview {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 200px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-left: 5px solid #4c51bf;
+}
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin: 10px 0 0 0;
+}
+
+.section-subtitle {
+    margin: 20px 0;
+    color: #2d3748;
+}
+
+/* Table Design */
+.table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.dashboard-table th {
+    background-color: #edf2f7;
+    padding: 15px;
+    color: #4a5568;
+    font-weight: 600;
+}
+
+.dashboard-table td {
+    padding: 15px;
+    border-bottom: 1px solid #edf2f7;
+    color: #2d3748;
+}
+
+.dashboard-table tr:hover {
+    background-color: #f7fafc;
+}
+
+/* Buttons */
+.btn-view {
+    background-color: #4c51bf;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.btn-create {
+    background-color: #48bb78;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-create:hover {
+    background-color: #38a169;
+}
+
+/* Modal Overlay (Background) */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+/* Modal Box - FIXED HEIGHT ISSUES */
+.modal-content {
+    background-color: white;
+    padding: 0; /* Remove padding to handle scroll better */
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh; /* Prevents going off screen */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #1a202c;
+}
+
+.modal-body {
+    padding: 25px;
+    overflow-y: auto; /* Makes the form scrollable if too long */
+}
+
+.close-btn {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #a0aec0;
+}
+
+.close-btn:hover { color: #4a5568; }
+
+/* Form Elements */
+.modal-content .form-group {
+    margin-bottom: 18px;
+}
+
+.modal-content label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #4a5568;
+}
+
+.modal-content input, 
+.modal-content textarea, 
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* Better alignment for Day, Start, End */
+    gap: 10px;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: #4c51bf;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+.btn-submit:hover { background-color: #434190; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+}
