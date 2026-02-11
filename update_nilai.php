@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     $nilai = $_POST['nilai'];
 
     try {
-        // Upsert logic: Update if exists, Insert if not
         $sql = "INSERT INTO nilai_ekskul (id_user, id_ekskul, nilai) 
                 VALUES (:sid, :eid, :nilai)
                 ON CONFLICT (id_user, id_ekskul) 
@@ -17,9 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['sid' => $sid, 'eid' => $eid, 'nilai' => $nilai]);
 
-        echo json_encode(['success' => true]);
+        // Redirect kembali ke halaman detail agar user melihat perubahan
+        header("Location: detail_ekskul.php?id=" . $eid);
+        exit;
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        die("Database Error: " . $e->getMessage());
     }
 }
 ?>

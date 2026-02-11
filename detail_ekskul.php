@@ -12,7 +12,7 @@ $user_id = $_SESSION["user_id"];
 $user_role = $_SESSION["role"];
 
 try {
-    // 1. FETCH EKSKUL DETAILS & SCHEDULES
+    // 1. FETCH EKSKUL DETAILS & SCHEDULES (Untuk Tampilan Utama)
     $sql_ekskul = "SELECT e.*, 
                    string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', '<br>' ORDER BY j.day) as jadwal_list
                    FROM ekskul e
@@ -36,7 +36,7 @@ try {
         $is_enrolled = (bool)$stmt_check->fetch();
     }
 
-    // 3. FETCH INDIVIDUAL SCHEDULES FOR THE EDIT MODAL
+    // 3. FETCH INDIVIDUAL SCHEDULES (Khusus untuk Modal Edit)
     $sql_raw_schedules = "SELECT * FROM jadwal_ekskul WHERE id_ekskul = :eid ORDER BY day";
     $stmt_sch = $pdo->prepare($sql_raw_schedules);
     $stmt_sch->execute(['eid' => $ekskul_id]);
@@ -57,7 +57,6 @@ try {
     die("Database Error: " . $e->getMessage());
 }
 
-// Check Ownership for Pengurus
 $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teacher_id']);
 ?>
 
@@ -71,13 +70,18 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
     <link rel="stylesheet" href="dashboardStyle.css"> 
     <link rel="stylesheet" href="detail_ekskul_style.css">
     <style>
-        /* Tambahan style untuk tombol aksi di Hero */
         .hero-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-enroll { background-color: #38a169; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-leave { background-color: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-disband { background-color: #1a202c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-enroll:hover { background-color: #2f855a; }
-        .btn-leave:hover, .btn-disband:hover { opacity: 0.9; }
+        .btn-edit-trigger { background-color: #3182ce; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .form-update-nilai { display: flex; gap: 5px; align-items: center; }
+        .btn-save-nilai { background: #4a5568; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+        /* Style tambahan untuk modal di dalam detail_ekskul */
+        .remove-schedule { color: #e53e3e; cursor: pointer; font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+        .btn-add-schedule { background: #edf2f7; border: 1px dashed #cbd5e0; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -107,11 +111,10 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
         <section class="ekskul-hero">
             <div class="hero-content">
                 <h1><?php echo htmlspecialchars($ekskul['nama']); ?></h1>
-                
                 <div class="hero-actions">
                     <?php if ($user_role === 'student'): ?>
                         <?php if ($is_enrolled): ?>
-                            <form action="proses_keluar_ekskul.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari ekskul ini?')">
+                            <form action="proses_keluar_ekskul.php" method="POST" onsubmit="return confirm('Yakin ingin keluar?')">
                                 <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
                                 <button type="submit" class="btn-leave">Keluar Ekskul</button>
                             </form>
@@ -124,8 +127,8 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
                     <?php endif; ?>
 
                     <?php if ($is_assigned_pengurus): ?>
-                        <button onclick="openEditModal()" class="btn-edit-trigger">Edit Informasi</button>
-                        <form action="proses_bubarkan_ekskul.php" method="POST" onsubmit="return confirm('PERINGATAN: Menghapus ekskul ini akan menghapus semua data pendaftaran dan nilai siswa di dalamnya. Lanjutkan?')">
+                        <button type="button" class="btn-edit-trigger" onclick="openEditModal()">Edit Informasi</button>
+                        <form action="proses_bubarkan_ekskul.php" method="POST" onsubmit="return confirm('PERINGATAN: Semua data pendaftaran dan nilai akan hilang. Lanjutkan?')">
                             <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
                             <button type="submit" class="btn-disband">Bubarkan Ekskul</button>
                         </form>
@@ -140,7 +143,6 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
                 <h3>Deskripsi</h3>
                 <p><?php echo nl2br(htmlspecialchars($ekskul['deskripsi'])); ?></p>
             </div>
-
             <div class="info-card schedule-card">
                 <h3>Jadwal Latihan</h3>
                 <div class="schedule-items">
@@ -175,16 +177,21 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
                                     <td><?php echo date('d M Y', strtotime($s['created_at'])); ?></td>
                                     <td>
                                         <?php if ($is_assigned_pengurus): ?>
-                                            <select class="select-nilai" 
-                                                    onchange="updateNilai(<?php echo $s['student_id']; ?>, <?php echo $ekskul_id; ?>, this.value)">
-                                                <option value="">- Pilih -</option>
-                                                <?php $options = ['Sangat Baik', 'Baik', 'Cukup', 'Buruk'];
-                                                foreach($options as $opt): ?>
-                                                    <option value="<?php echo $opt; ?>" <?php echo ($s['nilai'] == $opt) ? 'selected' : ''; ?>>
-                                                        <?php echo $opt; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <form action="update_nilai.php" method="POST" class="form-update-nilai">
+                                                <input type="hidden" name="student_id" value="<?php echo $s['student_id']; ?>">
+                                                <input type="hidden" name="ekskul_id" value="<?php echo $ekskul_id; ?>">
+                                                <select name="nilai" class="select-nilai">
+                                                    <option value="">- Pilih -</option>
+                                                    <?php 
+                                                    $options = ['Sangat Baik', 'Baik', 'Cukup', 'Buruk'];
+                                                    foreach($options as $opt): ?>
+                                                        <option value="<?php echo $opt; ?>" <?php echo ($s['nilai'] == $opt) ? 'selected' : ''; ?>>
+                                                            <?php echo $opt; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <button type="submit" class="btn-save-nilai">Simpan</button>
+                                            </form>
                                         <?php else: ?>
                                             <span class="badge-nilai"><?php echo $s['nilai'] ?: '-'; ?></span>
                                         <?php endif; ?>
@@ -199,7 +206,8 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
     </main>
 </div>
 
-<div id="editModal" class="modal-overlay">
+<?php if ($is_assigned_pengurus): ?>
+<div id="editModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
         <div class="modal-header">
             <h3>Edit Ekskul: <?php echo htmlspecialchars($ekskul['nama']); ?></h3>
@@ -246,6 +254,7 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
                 </div>
 
                 <button type="button" class="btn-add-schedule" onclick="addEditScheduleRow()">+ Tambah Hari Lain</button>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeEditModal()">Batal</button>
                     <button type="submit" class="btn-submit">Simpan Perubahan</button>
@@ -256,15 +265,16 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
 </div>
 
 <script>
-    function openEditModal() { 
-        document.getElementById('editModal').style.display = 'flex'; 
-        document.body.style.overflow = 'hidden'; 
+    function openEditModal() {
+        document.getElementById('editModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
-    function closeEditModal() { 
-        document.getElementById('editModal').style.display = 'none'; 
-        document.body.style.overflow = 'auto'; 
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
     }
-    
+
     function addEditScheduleRow() {
         const container = document.getElementById('edit-schedule-container');
         const newRow = document.createElement('div');
@@ -274,8 +284,9 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
             <div class="form-row">
                 <div class="form-group">
                     <select name="day[]" required>
-                        <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
-                        <option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option>
+                        <option value="Senin">Senin</option><option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option><option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option>
                     </select>
                 </div>
                 <div class="form-group"><input type="time" name="start_time[]" required></div>
@@ -285,27 +296,13 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
         container.appendChild(newRow);
     }
 
-    function updateNilai(studentId, ekskulId, val) {
-        const formData = new FormData();
-        formData.append('student_id', studentId);
-        formData.append('ekskul_id', ekskulId);
-        formData.append('nilai', val);
-
-        fetch('update_nilai.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) alert('Gagal mengupdate nilai.');
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
+    // Klik di luar modal untuk menutup
     window.onclick = function(event) {
-        if (event.target == document.getElementById('editModal')) closeEditModal();
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) closeEditModal();
     }
 </script>
+<?php endif; ?>
 
 </body>
 </html>
