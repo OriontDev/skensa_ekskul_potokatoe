@@ -12,7 +12,7 @@ $user_id = $_SESSION["user_id"];
 $user_role = $_SESSION["role"];
 
 try {
-    // 1. FETCH EKSKUL DETAILS & SCHEDULES (Using teacher_id to identify pengurus)
+    // 1. FETCH EKSKUL DETAILS & SCHEDULES
     $sql_ekskul = "SELECT e.*, 
                    string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', '<br>' ORDER BY j.day) as jadwal_list
                    FROM ekskul e
@@ -27,13 +27,22 @@ try {
         die("Ekstrakurikuler tidak ditemukan.");
     }
 
-    // 2. FETCH INDIVIDUAL SCHEDULES FOR THE EDIT MODAL
+    // 2. CHECK IF STUDENT IS ALREADY ENROLLED
+    $is_enrolled = false;
+    if ($user_role === 'student') {
+        $sql_check = "SELECT 1 FROM pendaftaran WHERE id_user = :uid AND id_ekskul = :eid";
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->execute(['uid' => $user_id, 'eid' => $ekskul_id]);
+        $is_enrolled = (bool)$stmt_check->fetch();
+    }
+
+    // 3. FETCH INDIVIDUAL SCHEDULES FOR THE EDIT MODAL
     $sql_raw_schedules = "SELECT * FROM jadwal_ekskul WHERE id_ekskul = :eid ORDER BY day";
     $stmt_sch = $pdo->prepare($sql_raw_schedules);
     $stmt_sch->execute(['eid' => $ekskul_id]);
     $raw_schedules = $stmt_sch->fetchAll();
 
-    // 3. FETCH ENROLLED STUDENTS WITH GRADES
+    // 4. FETCH ENROLLED STUDENTS WITH GRADES
     $sql_students = "SELECT u.id as student_id, u.nama, p.created_at, n.nilai 
                      FROM pendaftaran p
                      JOIN users u ON p.id_user = u.id
@@ -48,7 +57,7 @@ try {
     die("Database Error: " . $e->getMessage());
 }
 
-// Logic: Is this user the assigned pengurus for this specific extra?
+// Check Ownership for Pengurus
 $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teacher_id']);
 ?>
 
@@ -61,6 +70,15 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboardStyle.css"> 
     <link rel="stylesheet" href="detail_ekskul_style.css">
+    <style>
+        /* Tambahan style untuk tombol aksi di Hero */
+        .hero-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-enroll { background-color: #38a169; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-leave { background-color: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-disband { background-color: #1a202c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-enroll:hover { background-color: #2f855a; }
+        .btn-leave:hover, .btn-disband:hover { opacity: 0.9; }
+    </style>
 </head>
 <body>
 
@@ -89,9 +107,30 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
         <section class="ekskul-hero">
             <div class="hero-content">
                 <h1><?php echo htmlspecialchars($ekskul['nama']); ?></h1>
-                <?php if ($user_role === 'pengurus' || $user_role === 'guru'): ?>
-                    <button onclick="openEditModal()" class="btn-edit-trigger">Edit Informasi</button>
-                <?php endif; ?>
+                
+                <div class="hero-actions">
+                    <?php if ($user_role === 'student'): ?>
+                        <?php if ($is_enrolled): ?>
+                            <form action="proses_keluar_ekskul.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari ekskul ini?')">
+                                <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
+                                <button type="submit" class="btn-leave">Keluar Ekskul</button>
+                            </form>
+                        <?php else: ?>
+                            <form action="proses_daftar_ekskul.php" method="POST">
+                                <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
+                                <button type="submit" class="btn-enroll">Daftar Sekarang</button>
+                            </form>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php if ($is_assigned_pengurus): ?>
+                        <button onclick="openEditModal()" class="btn-edit-trigger">Edit Informasi</button>
+                        <form action="proses_bubarkan_ekskul.php" method="POST" onsubmit="return confirm('PERINGATAN: Menghapus ekskul ini akan menghapus semua data pendaftaran dan nilai siswa di dalamnya. Lanjutkan?')">
+                            <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
+                            <button type="submit" class="btn-disband">Bubarkan Ekskul</button>
+                        </form>
+                    <?php endif; ?>
+                </div>
             </div>
             <div class="hero-banner" style="background-image: url('<?php echo !empty($ekskul['thumbnail']) ? htmlspecialchars($ekskul['thumbnail']) : 'https://via.placeholder.com/1200x300?text=No+Image'; ?>');"></div>
         </section>
@@ -246,7 +285,6 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
         container.appendChild(newRow);
     }
 
-    // AJAX to update Nilai
     function updateNilai(studentId, ekskulId, val) {
         const formData = new FormData();
         formData.append('student_id', studentId);

@@ -62,7 +62,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Akun Siswa</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="registerLogin.css"> 
     <style>
         .form-container {
             max-width: 400px;

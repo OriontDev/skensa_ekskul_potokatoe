@@ -1,0 +1,153 @@
+/* =========================================================================
+   registerLogin.css - Khusus untuk halaman Login & Register
+   ========================================================================= */
+
+/* 1. Pengaturan Dasar */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f1f6ff; /* --light-bg */
+    margin: 0;
+    padding: 0;
+    display: block; /* Memastikan tidak sideways */
+    color: #4a5568;
+}
+
+/* 2. Header (Menyesuaikan dengan gaya index.php) */
+.header {
+    background: linear-gradient(135deg, #3784ff, #6b46c1);
+    color: white;
+    padding: 60px 0 80px;
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-top: 10px;
+}
+
+/* 3. Container & Form Box */
+.main-content {
+    margin-top: -50px; /* Membuat form agak naik ke area header */
+    padding-bottom: 50px;
+}
+
+.form-container {
+    max-width: 450px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.section-title {
+    text-align: center;
+    color: #2d3748;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* 4. Elemen Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.form-group input, 
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-group input:focus, 
+.form-group select:focus {
+    border-color: #3784ff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(55, 132, 255, 0.1);
+}
+
+/* 5. Tombol */
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    background-color: #68d391; /* --secondary-color */
+    color: #2d3748;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #48bb78;
+    color: white;
+}
+
+/* 6. Pesan Error & Link */
+.error-feedback {
+    color: #c53030;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.login-error {
+    background-color: #fed7d7;
+    color: #9b2c2c;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    border: 1px solid #f56565;
+}
+
+a {
+    color: #3784ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* 7. Footer */
+.footer {
+    background-color: #2d3748;
+    color: #a0aec0;
+    text-align: center;
+    padding: 25px 0;
+    margin-top: 40px;
+}
+
+/* 8. Responsif Mobile */
+@media (max-width: 480px) {
+    .form-container {
+        margin: 0 15px;
+        padding: 25px;
+    }
+}
