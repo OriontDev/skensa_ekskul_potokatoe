@@ -13,9 +13,13 @@ $user_name = $_SESSION["nama"];
 $user_role = $_SESSION["role"];
 $my_ekskul = [];
 
+// Definisi Jurusan dan Kelas untuk Guru
+$jurusan_list = ['RPL', 'TKJ', 'DKV', 'TPTUP', 'TSM', 'TKR', 'DPIB', 'PRF', 'TITL'];
+$tingkat_list = ['X', 'XI', 'XII'];
+$nomor_list = ['1', '2'];
+
 try {
     if ($user_role === 'guru' || $user_role === 'pengurus') {
-        // Fetch for managers/teachers
         $sql = "SELECT e.*, 
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
                 FROM ekskul e
@@ -27,7 +31,6 @@ try {
         $stmt->execute(['uid' => $user_id]);
         $my_ekskul = $stmt->fetchAll();
     } else {
-        // Fetch for students
         $sql = "SELECT e.*, p.kelas, p.created_at as tanggal_daftar,
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
                 FROM ekskul e
@@ -57,7 +60,13 @@ try {
         .remove-schedule { color: #f56565; cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
         .btn-add-schedule { background: #edf2f7; border: 1px dashed #cbd5e0; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; color: #4a5568; margin-bottom: 20px; font-size: 0.85rem; transition: 0.2s; }
         .btn-add-schedule:hover { background: #e2e8f0; }
-        .guru-welcome { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; margin-bottom: 30px; }
+        
+        /* Style baru untuk Grid Kelas Guru */
+        .major-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .major-title { font-size: 1.1rem; color: #2d3748; margin-bottom: 15px; border-left: 4px solid #4c51bf; padding-left: 10px; }
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .class-btn { display: block; text-align: center; padding: 10px; background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #4a5568; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
+        .class-btn:hover { background: #4c51bf; color: white; border-color: #4c51bf; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -86,10 +95,27 @@ try {
     <main class="content-area">
         
         <?php if ($user_role === 'guru'): ?>
-            <section class="guru-welcome">
-                <h2 style="color: #2d3748;">Selamat Datang, Bapak/Ibu Guru</h2>
-                <p style="color: #718096; margin-top: 10px;">Gunakan menu navigasi untuk mengelola profil atau mendapatkan bantuan.</p>
-            </section>
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; margin-bottom: 5px;">Panel Pemantauan Kelas</h2>
+                <p style="color: #718096;">Pilih kelas untuk melihat daftar siswa yang sudah mendaftar ekskul.</p>
+            </div>
+
+            <?php foreach ($jurusan_list as $jurusan): ?>
+                <div class="major-section">
+                    <h3 class="major-title">Jurusan <?php echo $jurusan; ?></h3>
+                    <div class="class-grid">
+                        <?php 
+                        foreach ($tingkat_list as $tingkat) {
+                            foreach ($nomor_list as $nomor) {
+                                $nama_kelas = "$tingkat $jurusan $nomor";
+                                echo "<a href='tampilkan_kelas.php?kelas=" . urlencode($nama_kelas) . "' class='class-btn'>$nama_kelas</a>";
+                            }
+                        }
+                        ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
         <?php else: ?>
             <section class="stats-overview">
                 <div class="stat-card">
