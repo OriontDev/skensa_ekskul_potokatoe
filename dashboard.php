@@ -27,14 +27,14 @@ try {
         $stmt->execute(['uid' => $user_id]);
         $my_ekskul = $stmt->fetchAll();
     } else {
-        // Fetch for students - FIXED: Removed p.kelas and changed tanggal_daftar to created_at
-        $sql = "SELECT e.*, p.created_at as tanggal_daftar,
+        // Fetch for students
+        $sql = "SELECT e.*, p.kelas, p.created_at as tanggal_daftar,
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
                 FROM ekskul e
                 JOIN pendaftaran p ON e.id = p.id_ekskul
                 LEFT JOIN jadwal_ekskul j ON e.id = j.id_ekskul
                 WHERE p.id_user = :uid
-                GROUP BY e.id, p.created_at
+                GROUP BY e.id, p.kelas, p.created_at
                 ORDER BY e.nama ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['uid' => $user_id]);
@@ -57,6 +57,7 @@ try {
         .remove-schedule { color: #f56565; cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
         .btn-add-schedule { background: #edf2f7; border: 1px dashed #cbd5e0; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; color: #4a5568; margin-bottom: 20px; font-size: 0.85rem; transition: 0.2s; }
         .btn-add-schedule:hover { background: #e2e8f0; }
+        .guru-welcome { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; margin-bottom: 30px; }
     </style>
 </head>
 <body>
@@ -83,49 +84,73 @@ try {
     </header>
 
     <main class="content-area">
-        <section class="stats-overview">
-            <div class="stat-card">
-                <h3>Total Ekskul Anda</h3>
-                <p class="stat-number"><?php echo count($my_ekskul); ?></p>
-            </div>
-            <?php if ($user_role === 'pengurus'): ?>
-            <button class="btn-create" onclick="openModal()">+ Tambah Ekskul Baru</button>
-            <?php endif; ?>
-        </section>
+        
+        <?php if ($user_role === 'guru'): ?>
+            <section class="guru-welcome">
+                <h2 style="color: #2d3748;">Selamat Datang, Bapak/Ibu Guru</h2>
+                <p style="color: #718096; margin-top: 10px;">Gunakan menu navigasi untuk mengelola profil atau mendapatkan bantuan.</p>
+            </section>
+        <?php else: ?>
+            <section class="stats-overview">
+                <div class="stat-card">
+                    <h3>Total Ekskul Anda</h3>
+                    <p class="stat-number"><?php echo count($my_ekskul); ?></p>
+                </div>
+                <?php if ($user_role === 'pengurus'): ?>
+                <button class="btn-create" onclick="openModal()">+ Tambah Ekskul Baru</button>
+                <?php endif; ?>
+            </section>
 
-        <h3 class="section-subtitle"><?php echo ($user_role === 'student') ? "Ekskul yang Saya Ikuti" : "Ekskul yang Saya Kelola"; ?></h3>
+            <h3 class="section-subtitle">
+                <?php echo ($user_role === 'student') ? "Ekskul yang Saya Ikuti" : "Ekskul yang Saya Kelola"; ?>
+            </h3>
 
-        <?php if (isset($error)): ?><div class="alert alert-danger"><?php echo $error; ?></div><?php endif; ?>
+            <?php if (isset($error)): ?><div class="alert alert-danger"><?php echo $error; ?></div><?php endif; ?>
 
-        <div class="table-container">
-            <table class="dashboard-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Ekskul</th>
-                        <th>Jadwal</th>
-                        <?php if($user_role === 'student'): ?><th>Tgl Daftar</th><?php endif; ?>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($my_ekskul as $index => $item): ?>
+            <div class="table-container">
+                <table class="dashboard-table">
+                    <thead>
                         <tr>
-                            <td><?php echo $index + 1; ?></td>
-                            <td><strong><?php echo htmlspecialchars($item['nama']); ?></strong></td>
-                            <td><?php echo $item['jadwal_gabungan'] ?: '<em>Belum diatur</em>'; ?></td>
+                            <th>No</th>
+                            <th>Nama Ekskul</th>
+                            <th>Jadwal</th>
                             <?php if($user_role === 'student'): ?>
-                                <td><?php echo date('d M Y', strtotime($item['tanggal_daftar'])); ?></td>
+                                <th>Kelas</th>
+                                <th>Tgl Daftar</th>
                             <?php endif; ?>
-                            <td><a href="detail_ekskul.php?id=<?php echo $item['id']; ?>" class="btn-view">Detail</a></td>
+                            <th>Aksi</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($my_ekskul)): ?>
+                            <tr>
+                                <td colspan="<?php echo ($user_role === 'student') ? '6' : '4'; ?>" style="text-align: center; padding: 20px; color: #a0aec0;">
+                                    Belum ada data ekskul.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($my_ekskul as $index => $item): ?>
+                                <tr>
+                                    <td><?php echo $index + 1; ?></td>
+                                    <td><strong><?php echo htmlspecialchars($item['nama']); ?></strong></td>
+                                    <td><?php echo $item['jadwal_gabungan'] ?: '<em>Belum diatur</em>'; ?></td>
+                                    <?php if($user_role === 'student'): ?>
+                                        <td><?php echo htmlspecialchars($item['kelas']); ?></td>
+                                        <td><?php echo date('d M Y', strtotime($item['tanggal_daftar'])); ?></td>
+                                    <?php endif; ?>
+                                    <td><a href="detail_ekskul.php?id=<?php echo $item['id']; ?>" class="btn-view">Detail</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
     </main>
 </div>
 
+<?php if ($user_role === 'pengurus'): ?>
 <div id="createModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
@@ -172,6 +197,7 @@ try {
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <script>
     function openModal() { document.getElementById('createModal').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
