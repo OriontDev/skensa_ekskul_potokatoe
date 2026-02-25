@@ -11,6 +11,10 @@
     $search_query = isset($_GET['search']) ? trim($_GET['search']) : ""; 
     $ekskul_selected_id = isset($_GET['ekskul_selected']) ? (int)$_GET['ekskul_selected'] : 0;
 
+    // Konfigurasi Dropdown Kelas
+    $jurusan_list = ['RPL', 'TKJ', 'DKV', 'TPTUP', 'TSM', 'TKR', 'DPIB', 'PRF', 'TITL'];
+    $tingkat_list = ['X', 'XI', 'XII'];
+
     try {
         $sql = "SELECT e.id, e.nama, e.deskripsi, e.thumbnail, 
                 string_agg(j.day || ' (' || TO_CHAR(j.start_time, 'HH24:MI') || '-' || TO_CHAR(j.end_time, 'HH24:MI') || ')', ', ' ORDER BY j.day) as jadwal_gabungan
@@ -110,10 +114,14 @@
                         
                         <div style="margin-top: auto;">
                             <?php if ($is_logged_in): ?>
-                                <?php if ($is_registered): ?>
-                                    <button disabled style='width: 100%; padding: 10px; background-color: #cbd5e0; color: #4a5568; border: none; border-radius: 5px; font-weight: bold;'>Sudah Terdaftar</button>
+                                <?php if ($user_role === 'siswa'): ?>
+                                    <?php if ($is_registered): ?>
+                                        <button disabled style='width: 100%; padding: 10px; background-color: #cbd5e0; color: #4a5568; border: none; border-radius: 5px; font-weight: bold;'>Sudah Terdaftar</button>
+                                    <?php else: ?>
+                                        <a href='index.php?ekskul_selected=<?php echo $ekskul['id']; ?>#form-pendaftaran' class='btn-register' style='display: block; text-align: center; padding: 10px; background-color: #4c51bf; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;'>Daftar Sekarang</a> 
+                                    <?php endif; ?>
                                 <?php else: ?>
-                                    <a href='index.php?ekskul_selected=<?php echo $ekskul['id']; ?>#form-pendaftaran' class='btn-register' style='display: block; text-align: center; padding: 10px; background-color: #4c51bf; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;'>Daftar Sekarang</a> 
+                                    <button disabled style='width: 100%; padding: 10px; background-color: #edf2f7; color: #718096; border: none; border-radius: 5px; font-size: 0.8rem;'>Hanya untuk Siswa</button>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <a href='login.php' class='btn-register' style='display: block; text-align: center; padding: 10px; background-color: #a0aec0; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;'>Login untuk Daftar</a>
@@ -129,36 +137,54 @@
         <h2 class="section-title" id="form-pendaftaran">Formulir Pendaftaran</h2>
         
         <?php if ($is_logged_in): ?>
-        <form action="simpan_pendaftaran.php" method="POST" class="registration-form" style="max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <p style="margin-top: 0; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;">Mendaftar sebagai: <b style="color: #4c51bf;"><?php echo htmlspecialchars($user_name); ?></b></p>
-            
-            <div class="form-group" style="margin: 20px 0;">
-                <label for="kelas" style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Kelas:</label>
-                <input type="text" id="kelas" name="kelas" required placeholder="Contoh: XI RPL 1" style="width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
-            </div>
-            
-            <div class="form-group" style="margin: 20px 0;">
-                <label for="id_ekskul" style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Pilih Ekstrakurikuler:</label>
-                <select id="id_ekskul" name="id_ekskul" required style="width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; background-color: white;">
-                    <option value="" disabled <?php echo ($ekskul_selected_id == 0) ? 'selected' : ''; ?>>-- Pilih Salah Satu --</option>
-                    <?php foreach ($ekskul_list_from_db as $ekskul): ?>
-                        <?php 
-                            $is_reg = in_array($ekskul['id'], $registered_ekskul_ids); 
-                            $selected = ($ekskul_selected_id == $ekskul['id']) ? 'selected' : '';
-                        ?>
-                        <option value="<?php echo $ekskul['id']; ?>" <?php echo $selected; ?> <?php echo $is_reg ? 'disabled' : ''; ?>>
-                            <?php echo htmlspecialchars($ekskul['nama']) . ($is_reg ? ' (Sudah Terdaftar)' : ''); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <button type="submit" class="btn-submit" style="width: 100%; padding: 14px; background: #4c51bf; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;">Kirim Pendaftaran</button>
-        </form>
+            <?php if ($user_role === 'siswa'): ?>
+                <form action="simpan_pendaftaran.php" method="POST" class="registration-form" style="max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                    <p style="margin-top: 0; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;">Mendaftar sebagai: <b style="color: #4c51bf;"><?php echo htmlspecialchars($user_name); ?></b></p>
+                    
+                    <div class="form-group" style="margin: 20px 0;">
+                        <label for="kelas" style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Pilih Kelas:</label>
+                        <select id="kelas" name="kelas" required style="width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; background-color: white;">
+                            <option value="" disabled selected>-- Pilih Kelas Anda --</option>
+                            <?php foreach ($tingkat_list as $tingkat): ?>
+                                <optgroup label="Tingkat <?php echo $tingkat; ?>">
+                                    <?php foreach ($jurusan_list as $jurusan): ?>
+                                        <?php for ($i = 1; $i <= 2; $i++): ?>
+                                            <?php $nama_kelas = "$tingkat $jurusan $i"; ?>
+                                            <option value="<?php echo $nama_kelas; ?>"><?php echo $nama_kelas; ?></option>
+                                        <?php endfor; ?>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin: 20px 0;">
+                        <label for="id_ekskul" style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Pilih Ekstrakurikuler:</label>
+                        <select id="id_ekskul" name="id_ekskul" required style="width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; background-color: white;">
+                            <option value="" disabled <?php echo ($ekskul_selected_id == 0) ? 'selected' : ''; ?>>-- Pilih Salah Satu --</option>
+                            <?php foreach ($ekskul_list_from_db as $ekskul): ?>
+                                <?php 
+                                    $is_reg = in_array($ekskul['id'], $registered_ekskul_ids); 
+                                    $selected = ($ekskul_selected_id == $ekskul['id']) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo $ekskul['id']; ?>" <?php echo $selected; ?> <?php echo $is_reg ? 'disabled' : ''; ?>>
+                                    <?php echo htmlspecialchars($ekskul['nama']) . ($is_reg ? ' (Sudah Terdaftar)' : ''); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" style="width: 100%; padding: 14px; background: #4c51bf; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;">Kirim Pendaftaran</button>
+                </form>
+            <?php else: ?>
+                <div class="info-message" style="background: #fff5f5; padding: 25px; border-radius: 8px; border-left: 5px solid #e53e3e; color: #c53030;">
+                    <p style="margin: 0;">Anda masuk sebagai <b><?php echo htmlspecialchars($user_role); ?></b>. Hanya akun dengan role <b>siswa</b> yang dapat mengisi formulir pendaftaran.</p>
+                </div>
+            <?php endif; ?>
         <?php else: ?>
-        <div class="info-message" style="background: #ebf4ff; padding: 25px; border-radius: 8px; border-left: 5px solid #4c51bf; color: #2c5282;">
-            <p style="margin: 0;">Silakan <a href="login.php" style="color: #4c51bf; font-weight: bold; text-decoration: underline;">Masuk</a> untuk mendaftar ekskul.</p>
-        </div>
+            <div class="info-message" style="background: #ebf4ff; padding: 25px; border-radius: 8px; border-left: 5px solid #4c51bf; color: #2c5282;">
+                <p style="margin: 0;">Silakan <a href="login.php" style="color: #4c51bf; font-weight: bold; text-decoration: underline;">Masuk</a> untuk mendaftar ekskul.</p>
+            </div>
         <?php endif; ?>
     </div>
 </div>
