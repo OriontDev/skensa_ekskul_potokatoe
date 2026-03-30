@@ -114,7 +114,7 @@
                         
                         <div style="margin-top: auto;">
                             <?php if ($is_logged_in): ?>
-                                <?php if ($user_role === 'siswa'): ?>
+                                <?php if ($user_role === 'student'): ?>
                                     <?php if ($is_registered): ?>
                                         <button disabled style='width: 100%; padding: 10px; background-color: #cbd5e0; color: #4a5568; border: none; border-radius: 5px; font-weight: bold;'>Sudah Terdaftar</button>
                                     <?php else: ?>
@@ -137,7 +137,7 @@
         <h2 class="section-title" id="form-pendaftaran">Formulir Pendaftaran</h2>
         
         <?php if ($is_logged_in): ?>
-            <?php if ($user_role === 'siswa'): ?>
+            <?php if ($user_role === 'student'): ?>
                 <form action="simpan_pendaftaran.php" method="POST" class="registration-form" style="max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
                     <p style="margin-top: 0; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;">Mendaftar sebagai: <b style="color: #4c51bf;"><?php echo htmlspecialchars($user_name); ?></b></p>
                     
