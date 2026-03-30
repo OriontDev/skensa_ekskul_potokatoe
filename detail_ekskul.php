@@ -118,11 +118,7 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
                                 <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
                                 <button type="submit" class="btn-leave">Keluar Ekskul</button>
                             </form>
-                        <?php else: ?>
-                            <form action="proses_daftar_ekskul.php" method="POST">
-                                <input type="hidden" name="id_ekskul" value="<?php echo $ekskul_id; ?>">
-                                <button type="submit" class="btn-enroll">Daftar Sekarang</button>
-                            </form>
+
                         <?php endif; ?>
                     <?php endif; ?>
 
