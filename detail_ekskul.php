@@ -91,8 +91,6 @@ $is_assigned_pengurus = ($user_role === 'pengurus' && $user_id == $ekskul['teach
     <ul class="sidebar-menu">
         <li><a href="index.php"><span class="menu-icon">🏠</span> <span class="menu-text">Home</span></a></li>
         <li><a href="dashboard.php" class="active"><span class="menu-icon">📊</span> <span class="menu-text">Dashboard</span></a></li>
-        <li><a href="settings.php"><span class="menu-icon">⚙️</span> <span class="menu-text">Settings</span></a></li>
-        <li><a href="help.php"><span class="menu-icon">❓</span> <span class="menu-text">Bantuan</span></a></li>
     </ul>
 </aside>
 

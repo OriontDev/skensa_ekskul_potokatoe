@@ -63,9 +63,7 @@
         <li><a href="index.php" class="active"><span class="menu-icon">🏠</span> <span class="menu-text">Home</span></a></li>
         <?php if ($is_logged_in): ?>
             <li><a href="dashboard.php"><span class="menu-icon">📊</span> <span class="menu-text">Dashboard</span></a></li>
-            <li><a href="settings.php"><span class="menu-icon">⚙️</span> <span class="menu-text">Settings</span></a></li>
         <?php endif; ?>
-        <li><a href="help.php"><span class="menu-icon">❓</span> <span class="menu-text">Bantuan</span></a></li>
     </ul>
 </aside>
 
